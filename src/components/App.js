@@ -4,6 +4,7 @@ import deque from "./deque";
 import main_audio from "../sound-effects/Snake Music.mp3";
 import eaten_audio from "../sound-effects/mixkit-explainer-video-game-alert-sweep-236.wav"
 import end_audio from "../sound-effects/mixkit-arcade-retro-jump-223.wav"
+import AudioHandler from "./AudioHandler"
 import "./App.css"
 
 
@@ -40,11 +41,10 @@ class App extends React.Component {
                 speed_y: 0
             },
             forbidden_direction: "left",
-            mainAudiu: new Audio(main_audio),
-            eatenAudio: new Audio(eaten_audio),
-            endAudio: new Audio(end_audio),
+            isEatenAudioPlaying: false,
+            isEndAudioPlaying: false
         }
-        this.state.mainAudiu.loop = true;
+
 
     }
 
@@ -107,23 +107,16 @@ class App extends React.Component {
     }
 
     componentDidMount = () => {
-        
+
         this.movementId = setInterval(this.update, 300);
         document.addEventListener("keydown", this.keyEventHandler);
-
-        document.addEventListener("click", event => {
-            this.state.mainAudiu.play();
-
-        },{once:true})
-        
-        
-
     }
 
     update = () => {
 
         let direction = this.directions.remove_first();
         let food = this.state.food;
+        let isEndAudioPlaying = this.state.isEndAudioPlaying;
 
         if (direction !== null) {
             this.handleDirection(direction);
@@ -138,13 +131,18 @@ class App extends React.Component {
 
         segments.push({ column: column === 21 ? 1 : (column === 0 ? 20 : column), row: row === 21 ? 1 : (row === 0 ? 21 : row) })
         if (this.endGame()) {
-            this.state.endAudio.play();
+
             segments = [segments[segments.length - 1]];
             food = this.getRandomCell();
+            isEndAudioPlaying = true;
+        }
+        else {
+            isEndAudioPlaying = false;
         }
         this.setState({
             segments: segments,
-            food: food
+            food: food,
+            isEndAudioPlaying: isEndAudioPlaying,
         })
 
         this.eaten();
@@ -186,15 +184,23 @@ class App extends React.Component {
         let size = segments.length;
         const head = segments[size - 1];
         const food = this.state.food;
+       
 
         if (food.column === head.column && food.row === head.row) {
-            this.state.eatenAudio.play();
+
             const column = head.column + this.state.speed.speed_x;
             const row = head.row + this.state.speed.speed_y;
             segments.push({ column: column === 21 ? 1 : (column === 0 ? 20 : column), row: row === 21 ? 1 : (row === 0 ? 21 : row) })
             this.setState({
                 segments: segments,
-                food: this.getRandomCell()
+                food: this.getRandomCell(),
+                isEatenAudioPlaying:true
+            })
+        }
+        else{
+            
+            this.setState({
+                isEatenAudioPlaying : false
             })
         }
     }
@@ -214,7 +220,9 @@ class App extends React.Component {
     render() {
         return (
             <React.Fragment>
-
+                <AudioHandler audio={new Audio(main_audio)} can_play={true} />
+                <AudioHandler audio={new Audio(eaten_audio)} can_play={this.state.isEatenAudioPlaying} />
+                <AudioHandler audio={new Audio(end_audio)} can_play={this.state.isEndAudioPlaying} />
                 <div className="box">
                     {this.draw()}
                 </div>
