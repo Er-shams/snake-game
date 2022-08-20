@@ -1,0 +1,9 @@
+.box{
+    width: 660px;
+    height: 660px;
+    margin: 30px auto;
+    background-color: rgb(238, 219, 164);
+    display: grid;
+    grid-template-columns: repeat(20,33px);
+    grid-template-rows: repeat(20,33px);
+}
